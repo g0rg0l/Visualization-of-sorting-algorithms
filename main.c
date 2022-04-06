@@ -7,9 +7,9 @@
 int windowWidth = 1920;
 int windowHeight = 1080;
 
-float alpha = 0; // коэффициент вращения
+float alpha = 0; // rotation coefficient
 
-int numbers[MAX_COUNT]; // массив для сортировки
+int numbers[MAX_COUNT]; // array to be sorted
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     float pxPerOne = usableHeight / MAX_COUNT; // 9.72 px
 
     srand(time(NULL));
-    arrayInit(); // Начальное заполнение массива случайными числами [1, 50]
+    arrayInit(); // initial filling of the array by numbers: [1, 50]
 
 
     WNDCLASSEX wcex;
