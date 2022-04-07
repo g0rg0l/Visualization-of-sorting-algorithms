@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <string.h>
 #include <gl/gl.h>
 #include <stb_easy_font.h>
 
@@ -13,15 +14,31 @@ int curWidth, curHeight;
 int numbers[MAX_COUNT]; // array to be sorted
 int indexOfCurElem = 0; // index of elem in numbers[] wich is considered
 int sortedQ = 0; // bool variable which showing is array sorted or not
+int sortingQ = 0;
 
+/* bubble sort */
 int bubbleSortFlag = 1; // bool variable which showing is bubbleSort turned on or not
 int i, j;
 
+/* shaker sort */
+int shakerSortFlag = 0; // bool variable which showing is shakerSort turned on or not
+int high, low;
+int flag1;
+int flag2;
+
 TButton btn[] = // list of buttons on the screen
 {
-    {"start", {0, 0, 100, 0, 100, 30, 0, 30}, FALSE},
-    {"stop", {0, 40, 100, 40, 100, 70, 0, 70}, FALSE},
-    {"quit", {0, 80, 100, 80, 100, 110, 0, 110}, FALSE},
+    /* sorts buttons */
+    {"firstSort", {1024, 40, 1208, 40, 1208, 120, 1024, 120}, FALSE, TRUE, TRUE, 0.183, 0.183, 0.156},
+    {"secondSort", {1248, 40, 1432, 40, 1432, 120, 1248, 120}, FALSE, TRUE, FALSE, 0.183, 0.183, 0.156},
+    {"thirdSort", {1472, 40, 1656, 40, 1656, 120, 1472, 120}, FALSE, TRUE, FALSE, 0.183, 0.183, 0.156},
+    {"fourthSort", {1696, 40, 1880, 40, 1880, 120, 1696, 120}, FALSE, TRUE, FALSE, 0.183, 0.183, 0.156},
+
+    /* funcs buttons */
+    {"initArray", {40, 40, 224, 40, 224, 101, 40, 101}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
+    {"startSort", {40, 141, 224, 141, 224, 202, 40, 202}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
+    {"stopSort", {40, 242, 224, 242, 224, 303, 40, 303}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
+    {"exit", {40, 343, 224, 343, 224, 404, 40, 404}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156}
 };
 int btnCount = sizeof(btn) / sizeof(btn[0]); // count of buttons on the screen
 
@@ -42,21 +59,39 @@ void showButtons()
 void TButtonShow(TButton btn)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
-        if (btn.hover) glColor3f(0, 1, 0);
-        else glColor3f(1, 0, 0);
+        if (btn.active) glColor3f(0.191, 0.632, 0.671);
+        else if (btn.hover) glColor3f(0.277, 0.277, 0.250);
+        else glColor3f(btn.r, btn.g, btn.b);
+
         glVertexPointer(2, GL_FLOAT, 0, btn.vert);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDisableClientState(GL_VERTEX_ARRAY);
+
+    glPushMatrix();
+        glTranslatef(btn.vert[0], btn.vert[1], 0);
+        if (!btn.activetivable)
+        {
+            glScalef(3.3, 3.3, 3.3);
+            print_string(3, 6, btn.name, 0.937, 0.933, 0.992);
+        }
+        else
+        {
+            glScalef(2.5, 2.5, 2.5);
+            print_string(3, 6, btn.name, 0.937, 0.933, 0.992);
+        }
+    glPopMatrix();
 }
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     float pxPerOne =  WINDOW_HEIGHT / 2 / MAX_COUNT; // 9.72 px
-    switchBubbleSort();
+
 
     srand(time(NULL));
     arrayInit(); // initial filling of the array by numbers: [1, 40]
+
+    switchOnBubbleSort(); // on the start we need to turn on first type of sortings
 
     WNDCLASSEX wcex;
     HWND hwnd;
@@ -85,7 +120,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     hwnd = CreateWindowEx(0,
                           "GLSample",
                           "Visualization of sorting algorithms", // Title
-                          WS_OVERLAPPEDWINDOW ,
+                          WS_POPUP ,
                           CW_USEDEFAULT,
                           CW_USEDEFAULT,
                           WINDOW_WIDTH, // Main window width
@@ -116,47 +151,67 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
         else
         {
-            glClearColor(0.88, 0.8, 0.74, 0);
+            glClearColor(0.937, 0.933, 0.992, 0);
             glClear(GL_COLOR_BUFFER_BIT);
 
             glPushMatrix();
 
             glBegin(GL_QUADS);
-            glColor3f(0.04, 0.47, 0.44);
+                glColor3f(0.183, 0.183, 0.156);
+
+                glVertex2f(-1, 0.175);
+                glVertex2f(1, 0.175);
+                glVertex2f(1, -1);
+                glVertex2f(-1, -1);
+
+            glEnd();
+
+            glBegin(GL_QUADS);
+                glColor3f(0.183, 0.183, 0.156);
+
+                glVertex2f(-0.025, 1);
+                glVertex2f(0.025, 1);
+                glVertex2f(0.025, 0.175);
+                glVertex2f(-0.025, 0.175);
+
+            glEnd();
+
+            glBegin(GL_QUADS);
+            glColor3f(0.683, 0.109, 0.109);
 
                 for (int i = 0; i < MAX_COUNT; i++)
                 {
                     if (i == indexOfCurElem)
                     {
-                        glColor3f(0.93, 0.79, 0.51);
+                        glColor3f(0.191, 0.632, 0.671);
 
-                        glVertex2f(-0.8 + i * 0.041, -0.9);
-                        glVertex2f(-0.8 + (i + 1) * 0.041, -0.9);
-                        glVertex2f(-0.8 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
-                        glVertex2f(-0.8 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                        glVertex2f(-0.83 + i * 0.041, -0.9);
+                        glVertex2f(-0.83 + (i + 1) * 0.041, -0.9);
+                        glVertex2f(-0.83 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                        glVertex2f(-0.83 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
 
-                        glColor3f(0.04, 0.47, 0.44);
+                        glColor3f(0.683, 0.109, 0.109);
                     }
                     else
                     {
-                        glVertex2f(-0.8 + i * 0.041, -0.9);
-                        glVertex2f(-0.8 + (i + 1) * 0.041, -0.9);
-                        glVertex2f(-0.8 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
-                        glVertex2f(-0.8 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                        glVertex2f(-0.83 + i * 0.041, -0.9);
+                        glVertex2f(-0.83 + (i + 1) * 0.041, -0.9);
+                        glVertex2f(-0.83 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                        glVertex2f(-0.83 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
                     }
                 }
 
             glEnd();
 
             glBegin(GL_LINE_LOOP);
-            glColor3f(0.92, 0.80, 0.51);
+            glColor3f(0.937, 0.933, 0.992);
 
                 for (int i = 0; i < MAX_COUNT; i++)
                 {
-                    glVertex2f(-0.8 + i * 0.041, -0.9);
-                    glVertex2f(-0.8 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
-                    glVertex2f(-0.8 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
-                    glVertex2f(-0.8 + (i + 1) * 0.041, -0.9);
+                    glVertex2f(-0.83 + i * 0.041, -0.9);
+                    glVertex2f(-0.83 + i * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                    glVertex2f(-0.83 + (i + 1) * 0.041, -0.9 + pxPerOne * numbers[i] / 540);
+                    glVertex2f(-0.83 + (i + 1) * 0.041, -0.9);
                 }
 
             glEnd();
@@ -171,14 +226,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             {
                 if (numbers[i] < 10)
                 {
-                    step += 3;
-                    print_string(-294 + step, 340, toArray(numbers[i]), 0, 0, 0);
-                    step += 13;
+                    step += 2;
+                    print_string(-305 + step, 340, toArray(numbers[i]), 0.937, 0.933, 0.992);
+                    step += 14;
                 }
                 else
                 {
                     step -= 1;
-                    print_string(-294 + step, 340, toArray(numbers[i]), 0, 0, 0);
+                    print_string(-305 + step, 340, toArray(numbers[i]), 0.937, 0.933, 0.992);
                     step += 16;
                 }
             }
@@ -189,13 +244,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             SwapBuffers(hDC);
 
-            Sleep(5); // step of sorting in mlSec
+            Sleep(1); // step of sorting in mlSec
 
-            if (bubbleSortFlag)
+            if (sortingQ)
             {
-                bubblesort();
+                if (bubbleSortFlag)
+                {
+                    bubblesort();
 
-                if (sortedQ) switchOfBubbleSort();
+                    if (sortedQ)
+                    {
+                        sortingQ = 0;
+                        indexOfCurElem = 0;
+                    }
+                }
+                else if (shakerSortFlag)
+                {
+                    shakerSort();
+
+                    if (sortedQ)
+                    {
+                        sortingQ = 0;
+                        indexOfCurElem = MAX_COUNT / 2;
+                    }
+                }
             }
         }
     }
@@ -219,9 +291,74 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             for (int i = 0; i < btnCount; i++)
             {
                 if (PointInButton(LOWORD(lParam), HIWORD(lParam), btn[i]))
-            {
-                printf("%s\n", btn[i].name);
-            }
+                {
+                    /* painting the button */
+                    if (btn[i].activetivable)
+                    {
+                        if (!btn[i].active)
+                        {
+                            for (int j = 0; j < btnCount; j++)
+                            {
+                                if (btn[j].activetivable) btn[j].active = FALSE;
+                            }
+                            btn[i].active = TRUE;
+
+                            if (strcmp(btn[i].name, "firstSort") == 0)
+                            {
+                                if (!bubbleSortFlag)
+                                {
+                                    sortingQ = 0;
+                                    sortedQ = 0;
+                                    indexOfCurElem = 0;
+                                    arrayInit();
+
+                                    switchOfShakerSort();
+
+                                    switchOnBubbleSort();
+                                }
+                            }
+                            if (strcmp(btn[i].name, "secondSort") == 0)
+                            {
+                                if (!shakerSortFlag)
+                                {
+                                    sortingQ = 0;
+                                    sortedQ = 0;
+                                    indexOfCurElem = 0;
+                                    arrayInit();
+
+                                    switchOfBubbleSort();
+
+                                    switchOnShakerSort();
+                                }
+                            }
+                        }
+                    }
+
+                    /* do smth */
+                    if (strcmp(btn[i].name, "startSort") == 0)
+                    {
+                        sortingQ = 1;
+                    }
+                    if (strcmp(btn[i].name, "stopSort") == 0)
+                    {
+                        sortingQ = 0;
+                    }
+                    if (strcmp(btn[i].name, "initArray") == 0)
+                    {
+                        sortingQ = 0;
+                        sortedQ = 0;
+                        indexOfCurElem = 0;
+                        arrayInit();
+                        if (bubbleSortFlag)
+                        {
+                            switchOnBubbleSort();
+                        }
+                        else if (shakerSortFlag)
+                        {
+                            switchOnShakerSort();
+                        }
+                    }
+                }
             }
         break;
 
@@ -336,7 +473,7 @@ char * toArray(int number)
 
 
 
-void switchBubbleSort()
+void switchOnBubbleSort()
 {
     bubbleSortFlag = 1;
     i = MAX_COUNT - 1;
@@ -371,8 +508,72 @@ void bubblesort()
 }
 
 
+void switchOnShakerSort()
+{
+    shakerSortFlag = 1;
+
+    high = 0;
+    low = MAX_COUNT - 1;
+    i = high;
+    j = low;
+    flag1 = 1;
+    flag2 = 0;
+}
+
+
+void switchOfShakerSort()
+{
+    shakerSortFlag = 0;
+    indexOfCurElem = 0;
+}
+
+
+void shakerSort()
+{
+    if (high < low)
+    {
+        if (flag1)
+        {
+            if (i < low)
+            {
+                indexOfCurElem = i + 1;
+                if (numbers[i] > numbers[i + 1]) SWAP(numbers[i], numbers[i + 1]);
+                i++;
+            }
+            else
+            {
+                flag1 = 0;
+                low--;
+                i = high + 1;
+                flag2 = 1;
+            }
+        }
+        else if (flag2)
+        {
+            if (j > high)
+            {
+                indexOfCurElem = j - 1;
+                if (numbers[j] < numbers[j - 1]) SWAP(numbers[j], numbers[j - 1]);
+                j--;
+            }
+            else
+            {
+                flag2 = 0;
+                high++;
+                j = low - 1;
+                flag1 = 1;
+            }
+        }
+    }
+    else sortedQ = 1;
+}
+
+
 BOOL PointInButton(int x, int y, TButton btn)
 {
     return (x > btn.vert[0]) && (x < btn.vert[4]) &&
             (y > btn.vert[1]) && (y < btn.vert[5]);
 }
+
+
+

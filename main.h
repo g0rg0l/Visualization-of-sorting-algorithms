@@ -2,6 +2,11 @@ typedef struct { // struct of button
     char name[20];
     float vert[8];
     BOOL hover;
+    BOOL activetivable;
+    BOOL active;
+    float r;
+    float g;
+    float b;
 } TButton;
 
 
@@ -30,3 +35,9 @@ char * toArray(int number); // func that makes int -> char* []
 void bubblesort();
 void switchOnBubbleSort();
 void switchOfBubbleSort();
+
+
+/* Shaker Sort functions */
+void shakerSort();
+void switchOnShakerSort();
+void switchOfShakerSort();
