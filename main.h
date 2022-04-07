@@ -1,16 +1,32 @@
-LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
+typedef struct { // struct of button
+    char name[20];
+    float vert[8];
+    BOOL hover;
+} TButton;
 
 
-void EnableOpenGL(HWND hwnd, HDC*, HGLRC*);
+BOOL PointInButton(int x, int y, TButton btn); // check mouse on button or not
 
 
-void DisableOpenGL(HWND, HDC, HGLRC);
+LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM); // main func
 
 
-void arrayInit();
+void EnableOpenGL(HWND hwnd, HDC*, HGLRC*); // work with openGL
 
 
-void print_string(float x, float y, char *text, float r, float g, float b);
+void DisableOpenGL(HWND, HDC, HGLRC); // work with openGL
 
 
-char * toArray(int number);
+void arrayInit(); // func that fills an array with numbers [1; 40]
+
+
+void print_string(float x, float y, char *text, float r, float g, float b); // func to print the text
+
+
+char * toArray(int number); // func that makes int -> char* []
+
+
+/* Bubble Sort fucntions */
+void bubblesort();
+void switchOnBubbleSort();
+void switchOfBubbleSort();
