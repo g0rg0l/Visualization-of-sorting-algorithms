@@ -12,6 +12,8 @@
 
 int curWidth, curHeight;
 int numbers[MAX_COUNT]; // array to be sorted
+int firstFlag = 1;
+int speed = 50;
 int indexOfCurElem = 0; // index of elem in numbers[] wich is considered
 int sortedQ = 0; // bool variable which showing is array sorted or not
 int sortingQ = 0;
@@ -38,7 +40,9 @@ TButton btn[] = // list of buttons on the screen
     {"initArray", {40, 40, 224, 40, 224, 101, 40, 101}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
     {"startSort", {40, 141, 224, 141, 224, 202, 40, 202}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
     {"stopSort", {40, 242, 224, 242, 224, 303, 40, 303}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
-    {"exit", {40, 343, 224, 343, 224, 404, 40, 404}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156}
+    {"exit", {40, 343, 224, 343, 224, 404, 40, 404}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
+    {"speed+", {810, 343, 890, 343, 890, 404, 810, 404}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156},
+    {"speed-", {690, 343, 770, 343, 770, 404, 690, 404}, FALSE, FALSE, FALSE, 0.183, 0.183, 0.156}
 };
 int btnCount = sizeof(btn) / sizeof(btn[0]); // count of buttons on the screen
 
@@ -72,7 +76,31 @@ void TButtonShow(TButton btn)
         if (!btn.activetivable)
         {
             glScalef(3.3, 3.3, 3.3);
-            print_string(3, 6, btn.name, 0.937, 0.933, 0.992);
+
+            if (strcmp(btn.name, "startSort") == 0)
+            {
+                if (firstFlag)
+                {
+                    print_string(2, 6, "begin sort", 0.937, 0.933, 0.992);
+                }
+                else
+                {
+                    if (!sortingQ)
+                    {
+                        if (!sortedQ) print_string(7, 6, "continue", 0.937, 0.933, 0.992);
+                        else print_string(2, 6, "begin sort", 0.937, 0.933, 0.992);
+                    }
+                    else print_string(2, 6, "begin sort", 0.937, 0.933, 0.992);
+                }
+            }
+            else if (strcmp(btn.name, "speed+") == 0) print_string(0, 6, " ->", 0.937, 0.933, 0.992);
+            else if (strcmp(btn.name, "speed-") == 0) print_string(3, 6, " <-", 0.937, 0.933, 0.992);
+
+            else if (strcmp(btn.name, "initArray") == 0) print_string(2, 6, "new array", 0.937, 0.933, 0.992);
+
+            else if (strcmp(btn.name, "stopSort") == 0) print_string(4, 6, "stop sort", 0.937, 0.933, 0.992);
+
+            else if (strcmp(btn.name, "exit") == 0) print_string(18, 6, "exit", 0.937, 0.933, 0.992);
         }
         else
         {
@@ -238,13 +266,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 }
             }
 
+            glScalef(2, 2, 1);
+            print_string(-46, -95, "SPEED", 0.183, 0.183, 0.156);
+            if (speed == 100) print_string(-37.5, -80, "10", 0.683, 0.109, 0.109);
+            else if (speed == 0) print_string(-41.2, -80, "100", 0.683, 0.109, 0.109);
+            else print_string(-37.5, -80, toArray(100 - speed), 0.683, 0.109, 0.109);
+
             glPopMatrix();
 
             showButtons(); // paint the buttons on the screen
 
             SwapBuffers(hDC);
 
-            Sleep(1); // step of sorting in mlSec
+            Sleep(speed); // step of sorting in mlSec
 
             if (sortingQ)
             {
@@ -307,6 +341,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             {
                                 if (!bubbleSortFlag)
                                 {
+                                    firstFlag = 1;
                                     sortingQ = 0;
                                     sortedQ = 0;
                                     indexOfCurElem = 0;
@@ -321,6 +356,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             {
                                 if (!shakerSortFlag)
                                 {
+                                    firstFlag = 1;
                                     sortingQ = 0;
                                     sortedQ = 0;
                                     indexOfCurElem = 0;
@@ -338,6 +374,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (strcmp(btn[i].name, "startSort") == 0)
                     {
                         sortingQ = 1;
+                        firstFlag = 0;
                     }
                     if (strcmp(btn[i].name, "stopSort") == 0)
                     {
@@ -345,6 +382,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     }
                     if (strcmp(btn[i].name, "initArray") == 0)
                     {
+                        firstFlag = 1;
                         sortingQ = 0;
                         sortedQ = 0;
                         indexOfCurElem = 0;
@@ -357,6 +395,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         {
                             switchOnShakerSort();
                         }
+                    }
+                    if (strcmp(btn[i].name, "speed+") == 0)
+                    {
+                        speed -= 10;
+                        if (speed < 0) speed = 0;
+                    }
+                    if (strcmp(btn[i].name, "speed-") == 0)
+                    {
+                        speed += 10;
+                        if (speed > 100) speed = 100;
                     }
                 }
             }
