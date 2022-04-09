@@ -41,3 +41,15 @@ void switchOfBubbleSort();
 void shakerSort();
 void switchOnShakerSort();
 void switchOfShakerSort();
+
+
+/* Comb sort functions */
+void combSort();
+void switchOnCombSort();
+void switchOfCombSort();
+
+
+/* Insert sort functions */
+void insertSort();
+void switchOnInsertSort();
+void switchOFInsertSort();

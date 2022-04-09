@@ -9,6 +9,7 @@
 #define WINDOW_HEIGHT 1080
 #define WINDOW_WIDTH 1920
 #define SWAP(A, B) { int t = A; A = B; B = t; }
+#define RFACTOR 1.24733
 
 int curWidth, curHeight;
 int numbers[MAX_COUNT]; // array to be sorted
@@ -27,6 +28,19 @@ int shakerSortFlag = 0; // bool variable which showing is shakerSort turned on o
 int high, low;
 int flag1;
 int flag2;
+
+/* comb sort */
+int combSortFlag = 0; // bool variable which showing is combSort turned on or not
+int jump;
+int swapped;
+int count;
+int indexOfCurElem1;
+
+/* insert sort */
+int insertSortFlag = 0; // bool variable which showing is insertSort turned on or not
+int newElement;
+int location;
+
 
 TButton btn[] = // list of buttons on the screen
 {
@@ -104,8 +118,12 @@ void TButtonShow(TButton btn)
         }
         else
         {
-            glScalef(2.5, 2.5, 2.5);
-            print_string(3, 6, btn.name, 0.937, 0.933, 0.992);
+            glScalef(4, 4, 4);
+
+            if (strcmp(btn.name, "firstSort") == 0) print_string(7, 6, "Bubble", 0.937, 0.933, 0.992);
+            if (strcmp(btn.name, "secondSort") == 0) print_string(7, 6, "Shaker", 0.937, 0.933, 0.992);
+            if (strcmp(btn.name, "thirdSort") == 0) print_string(11, 6, "Comb", 0.937, 0.933, 0.992);
+            if (strcmp(btn.name, "fourthSort") == 0) print_string(7, 6, "Insert", 0.937, 0.933, 0.992);
         }
     glPopMatrix();
 }
@@ -115,8 +133,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
     float pxPerOne =  WINDOW_HEIGHT / 2 / MAX_COUNT; // 9.72 px
 
-
-    srand(time(NULL));
     arrayInit(); // initial filling of the array by numbers: [1, 40]
 
     switchOnBubbleSort(); // on the start we need to turn on first type of sortings
@@ -209,7 +225,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                 for (int i = 0; i < MAX_COUNT; i++)
                 {
-                    if (i == indexOfCurElem)
+                    if (i == indexOfCurElem || (i == indexOfCurElem1 && (combSortFlag || insertSortFlag)))
                     {
                         glColor3f(0.191, 0.632, 0.671);
 
@@ -266,11 +282,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 }
             }
 
+            /* speed btns */
             glScalef(2, 2, 1);
-            print_string(-46, -95, "SPEED", 0.183, 0.183, 0.156);
+            print_string(-46.6, -95, "SPEED", 0.183, 0.183, 0.156);
             if (speed == 100) print_string(-37.5, -80, "10", 0.683, 0.109, 0.109);
             else if (speed == 0) print_string(-41.2, -80, "100", 0.683, 0.109, 0.109);
             else print_string(-37.5, -80, toArray(100 - speed), 0.683, 0.109, 0.109);
+
+            /* sorts info text */
+            glScalef(1.1, 1.1, 1);
+            print_string(12, -100, "Asymptotics:", 0.183, 0.183, 0.156);
+            print_string(80, -80, "<-worse:", 0.183, 0.183, 0.156);
+            print_string(80, -60, "<-best:", 0.183, 0.183, 0.156);
+
+            if (bubbleSortFlag || insertSortFlag)
+            {
+                print_string(32, -80, "O(n)", 0.683, 0.109, 0.109);
+                glScalef(0.6, 0.6, 1);
+                print_string(75.3, -140, "2", 0.683, 0.109, 0.109);
+                glScalef(1.66, 1.66, 1);
+                print_string(32, -60, "O(n)", 0.683, 0.109, 0.109);
+            }
+            else if (shakerSortFlag || combSortFlag)
+            {
+                print_string(32, -80, "O(n)", 0.683, 0.109, 0.109);
+                glScalef(0.6, 0.6, 1);
+                print_string(75.3, -140, "2", 0.683, 0.109, 0.109);
+                glScalef(1.66, 1.66, 1);
+                print_string(32, -60, "O(nlogn)", 0.683, 0.109, 0.109);
+            }
 
             glPopMatrix();
 
@@ -300,6 +340,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     {
                         sortingQ = 0;
                         indexOfCurElem = MAX_COUNT / 2;
+                    }
+                }
+                else if (combSortFlag)
+                {
+                    combSort();
+
+                    if (sortedQ)
+                    {
+                        sortingQ = 0;
+                    }
+                }
+                else if (insertSortFlag)
+                {
+                    insertSort();
+
+                    if (sortedQ)
+                    {
+                        sortingQ = 0;
                     }
                 }
             }
@@ -348,6 +406,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                     arrayInit();
 
                                     switchOfShakerSort();
+                                    switchOfCombSort();
+                                    switchOfInsertSort();
 
                                     switchOnBubbleSort();
                                 }
@@ -363,8 +423,44 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                     arrayInit();
 
                                     switchOfBubbleSort();
+                                    switchOfCombSort();
+                                    switchOfInsertSort();
 
                                     switchOnShakerSort();
+                                }
+                            }
+                            if (strcmp(btn[i].name, "thirdSort") == 0)
+                            {
+                                if (!combSortFlag)
+                                {
+                                    firstFlag = 1;
+                                    sortingQ = 0;
+                                    sortedQ = 0;
+                                    indexOfCurElem = 0;
+                                    arrayInit();
+
+                                    switchOfBubbleSort();
+                                    switchOfShakerSort();
+                                    switchOfInsertSort();
+
+                                    switchOnCombSort();
+                                }
+                            }
+                            if (strcmp(btn[i].name, "fourthSort") == 0)
+                            {
+                                if (!insertSortFlag)
+                                {
+                                    firstFlag = 1;
+                                    sortingQ = 0;
+                                    sortedQ = 0;
+                                    indexOfCurElem = 0;
+                                    arrayInit();
+
+                                    switchOfBubbleSort();
+                                    switchOfShakerSort();
+                                    switchOfCombSort();
+
+                                    switchOnInsertSort();
                                 }
                             }
                         }
@@ -395,6 +491,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         {
                             switchOnShakerSort();
                         }
+                        else if (combSortFlag)
+                        {
+                            switchOnCombSort();
+                        }
+                        else if (insertSortFlag)
+                        {
+                            switchOnInsertSort();
+                        }
                     }
                     if (strcmp(btn[i].name, "speed+") == 0)
                     {
@@ -406,6 +510,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         speed += 10;
                         if (speed > 100) speed = 100;
                     }
+                    if (strcmp(btn[i].name, "exit") == 0) PostQuitMessage(0);
                 }
             }
         break;
@@ -484,6 +589,11 @@ void DisableOpenGL (HWND hwnd, HDC hDC, HGLRC hRC)
 
 void arrayInit()
 {
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+
+    srand(st.wMilliseconds * st.wSecond);
+
     for (int i = 0; i < MAX_COUNT; i++)
     {
         numbers[i] = 1 + rand() % 40; // [1; 40]
@@ -609,6 +719,108 @@ void shakerSort()
                 flag2 = 0;
                 high++;
                 j = low - 1;
+                flag1 = 1;
+            }
+        }
+    }
+    else sortedQ = 1;
+}
+
+
+
+void combSort()
+{
+    if ((jump > 0 || swapped) && count != 2)
+    {
+        if (flag1)
+        {
+            if (jump > 1) jump /= RFACTOR;
+            swapped = 0;
+            i = 0;
+            flag1 = 0;
+        }
+        if (!flag1)
+        {
+            if (i + jump < MAX_COUNT)
+            {
+                indexOfCurElem = i;
+                indexOfCurElem1 = i + jump;
+                if (numbers[i + jump] < numbers[i])
+                {
+                    SWAP(numbers[i], numbers[i + jump]);
+                    swapped = 1;
+                }
+                i++;
+            }
+            else
+            {
+                flag1 = 1;
+                if (jump == 1) count++;
+            }
+        }
+    }
+    else sortedQ = 1;
+}
+
+
+void switchOnCombSort()
+{
+    combSortFlag = 1;
+
+    flag1 = 1;
+    jump = MAX_COUNT;
+    i = 0;
+    swapped = 1;
+    count = 0;
+
+}
+
+
+void switchOfCombSort()
+{
+    combSortFlag = 0;
+}
+
+
+void switchOnInsertSort()
+{
+    insertSortFlag = 1;
+
+    flag1 = 1;
+    i = 1;
+}
+
+
+void switchOfInsertSort()
+{
+    insertSortFlag = 0;
+}
+
+
+void insertSort()
+{
+    if (i < MAX_COUNT)
+    {
+        indexOfCurElem = i;
+        if (flag1)
+        {
+            newElement = numbers[i];
+            location = i - 1;
+
+            flag1 = 0;
+        }
+        if (!flag1)
+        {
+            if (location >= 0 && numbers[location] > newElement)
+            {
+                indexOfCurElem1 = location;
+                numbers[location + 1] = numbers[location];
+                location -= 1;
+            }
+            else
+            {
+                numbers[location + 1] = newElement;
+                i++;
                 flag1 = 1;
             }
         }
