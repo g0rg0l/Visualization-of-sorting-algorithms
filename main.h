@@ -10,7 +10,7 @@ typedef struct { // struct of button
 } TButton;
 
 
-BOOL PointInButton(int x, int y, TButton btn); // check mouse on button or not
+BOOL PointInButton(float x, float y, TButton cur_btn); // check mouse on button or not
 
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM); // main func
@@ -52,4 +52,4 @@ void switchOfCombSort();
 /* Insert sort functions */
 void insertSort();
 void switchOnInsertSort();
-void switchOFInsertSort();
+void switchOfInsertSort();
