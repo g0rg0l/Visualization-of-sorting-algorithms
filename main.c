@@ -5,6 +5,8 @@
 
 #include "main.h"
 
+// Не судите за всё в одном файле - я был молодым и глупым
+
 #define MAX_COUNT 40
 #define WINDOW_HEIGHT 1081
 #define WINDOW_WIDTH 1921
